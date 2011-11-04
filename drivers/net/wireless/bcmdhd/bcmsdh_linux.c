@@ -638,6 +638,13 @@ int bcmsdh_register_oob_intr(void * dhdp)
 	return 0;
 }
 
+void *bcmsdh_get_drvdata(void)
+{
+	if (!sdhcinfo)
+		return NULL;
+	return dev_get_drvdata(sdhcinfo->dev);
+}
+
 void bcmsdh_set_irq(int flag)
 {
 	if (sdhcinfo->oob_irq_registered && sdhcinfo->oob_irq_enable_flag != flag) {

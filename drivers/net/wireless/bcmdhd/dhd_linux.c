@@ -4521,6 +4521,15 @@ int net_os_wake_unlock(struct net_device *dev)
 	return ret;
 }
 
+int dhd_os_check_if_up(void *dhdp)
+{
+	dhd_pub_t *pub = (dhd_pub_t *)dhdp;
+
+	if (!pub)
+		return 0;
+	return pub->up;
+}
+
 int dhd_ioctl_entry_local(struct net_device *net, wl_ioctl_t *ioc, int cmd)
 {
 	int ifidx;

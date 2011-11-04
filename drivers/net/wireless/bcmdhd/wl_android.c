@@ -126,6 +126,8 @@ int wl_cfg80211_get_p2p_noa(struct net_device *net, char* buf, int len)
 int wl_cfg80211_set_p2p_ps(struct net_device *net, char* buf, int len)
 { return 0; }
 #endif
+extern int dhd_os_check_if_up(void *dhdp);
+extern void *bcmsdh_get_drvdata(void);
 
 extern bool ap_fw_loaded;
 #ifdef CUSTOMER_HW2
@@ -794,7 +796,8 @@ static int wifi_resume(struct platform_device *pdev)
 {
 	DHD_TRACE(("##> %s\n", __FUNCTION__));
 #if defined(OOB_INTR_ONLY)
-	bcmsdh_oob_intr_set(1);
+	if (dhd_os_check_if_up(bcmsdh_get_drvdata()))
+		bcmsdh_oob_intr_set(1);
 #endif /* (OOB_INTR_ONLY) */
 	return 0;
 }

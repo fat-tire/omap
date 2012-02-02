@@ -312,10 +312,50 @@ config MACH_OMAP_4430SDP
 	bool "OMAP 4430 SDP board"
 	default y
 	depends on ARCH_OMAP4
+	select LEDS_OMAP4430_SDP_DISPLAY
+	select LEDS_OMAP4430_SDP_KEYPAD
+	select SENSORS_LM75
+	select INPUT_BH1780
+	select INPUT_BMP085
+	select INPUT_HMC5843
+	select INPUT_SFH7741
+	select INPUT_MISC
+	select HWMON
+	select INPUT_CMA3000
+	select INPUT_CMA3000_I2C
 	select OMAP_PACKAGE_CBL
 	select OMAP_PACKAGE_CBS
 	select REGULATOR_FIXED_VOLTAGE
 	select OMAP_TPS6236X
+	select TOUCHSCREEN_SYNTM12XX
+	select TWL6030_POWEROFF
+	select INPUT_TWL6030_PWRBUTTON
+#	select TWL6040_VIB
+	select TWL6030_BCI_BATTERY
+	select CHARGER_BQ2415x
+	select TWL6030_GPADC
+	select OMAP_REBOOT_REASON
+	select OMAP_RAM_CONSOLE
+
+config MACH_OMAP_BLAZE
+	bool "OMAP 44xx Tablet2 Board"
+	default y
+	depends on ARCH_OMAP4
+	select OMAP_PACKAGE_CBL
+	select OMAP_PACKAGE_CBS
+	select TOUCHSCREEN_QUANTUM_OBP
+	select LEDS_OMAP4430_SDP_DISPLAY
+	select LEDS_OMAP4430_SDP_KEYPAD
+	select INPUT_TSL2771
+	select INPUT_BMP085
+	select INPUT_HMC5843
+	select INPUT_MPU3050
+	select INPUT_BMA180
+	select PANEL_TC358765
+	select KEYBOARD_GPIO
+#	select TWL6040_VIB
+	select OMAP_REBOOT_REASON
+	select OMAP_RAM_CONSOLE
 
 config MACH_OMAP4_PANDA
 	bool "OMAP4 Panda Board"
@@ -324,15 +364,9 @@ config MACH_OMAP4_PANDA
 	select OMAP_PACKAGE_CBL
 	select OMAP_PACKAGE_CBS
 	select REGULATOR_FIXED_VOLTAGE
-
-config MACH_TUNA
-	bool "Tuna Board"
-	default y
-	depends on ARCH_OMAP4
-	select OMAP_PACKAGE_CBL
-	select OMAP_PACKAGE_CBS
-	select REGULATOR_FIXED_VOLTAGE
 	select OMAP_TPS6236X
+	select OMAP_REBOOT_REASON
+	select OMAP_RAM_CONSOLE
 
 config OMAP3_EMU
 	bool "OMAP3 debugging peripherals"
@@ -371,6 +405,20 @@ config OMAP_FIQ_DEBUGGER
 	select FIQ_DEBUGGER
 	help
 	  Enables the serial FIQ debugger on OMAP"
+
+config OMAP_REBOOT_REASON
+	depends on ARCH_OMAP4
+	bool
+
+config OMAP_RAM_CONSOLE
+        bool "Enable OMAP support for Android RAM console"
+        depends on ANDROID_RAM_CONSOLE
+        help
+          Select this option to enable Android RAM console support on OMAP.
+          This allows saving the kernel printk messages to a buffer in RAM, so
+          that after a kernel panic they can be viewed in the next kernel
+          invocation, by accessing /proc/last_kmsg
+          NOTE: Board file needs to invoke relevant api to enable the support
 
 endmenu
 

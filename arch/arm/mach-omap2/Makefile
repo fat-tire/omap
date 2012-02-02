@@ -15,7 +15,7 @@ clock-common				= clock.o clock_common_data.o \
 obj-$(CONFIG_ARCH_OMAP2) += $(omap-2-3-common) $(hwmod-common)
 obj-$(CONFIG_ARCH_OMAP3) += $(omap-2-3-common) $(hwmod-common)
 obj-$(CONFIG_ARCH_OMAP4) += prm44xx.o $(hwmod-common)
-obj-$(CONFIG_ARCH_OMAP4) += emif.o lpddr2_jedec_data.o lpddr2_elpida_data.o
+obj-$(CONFIG_ARCH_OMAP4) += emif.o lpddr2_jedec_data.o lpddr2_elpida_data.o lpddr2_samsung_data.o
 
 obj-$(CONFIG_OMAP_MCBSP) += mcbsp.o
 
@@ -270,6 +270,15 @@ obj-$(CONFIG_MACH_TUNA)			+= board-tuna-bluetooth.o \
 obj-$(CONFIG_MACH_TUNA)			+= board-tuna-connector.o
 obj-$(CONFIG_MACH_TUNA)			+= board-tuna-pogo.o
 obj-$(CONFIG_MACH_TUNA)			+= board-tuna-usbhost.o
+
+obj-$(CONFIG_MACH_OMAP4_NOOKTABLET)	+= board-nooktablet.o \
+					   leds-omap-pwm.o \
+                                           board-nooktablet-panel.o \
+                                           board-nooktablet-peripherals.o \
+                                           omap_phy_internal.o \
+                                           board-44xx-identity.o \
+                                           omap4_apps_brd_id.o \
+                                           hsmmc.o
 
 obj-$(CONFIG_MACH_OMAP3517EVM)		+= board-am3517evm.o \
 					   omap_phy_internal.o \

@@ -272,7 +272,7 @@ obj-$(CONFIG_MACH_TUNA)			+= board-tuna-pogo.o
 obj-$(CONFIG_MACH_TUNA)			+= board-tuna-usbhost.o
 
 obj-$(CONFIG_MACH_OMAP4_NOOKTABLET)	+= board-nooktablet.o \
-					   leds-omap-pwm.o \
+					   board-nooktablet-panel.o \
                                            board-nooktablet-peripherals.o \
                                            omap_phy_internal.o \
                                            board-44xx-identity.o \

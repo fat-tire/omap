@@ -15,7 +15,7 @@ clock-common				= clock.o clock_common_data.o \
 obj-$(CONFIG_ARCH_OMAP2) += $(omap-2-3-common) $(hwmod-common)
 obj-$(CONFIG_ARCH_OMAP3) += $(omap-2-3-common) $(hwmod-common)
 obj-$(CONFIG_ARCH_OMAP4) += prm44xx.o $(hwmod-common)
-obj-$(CONFIG_ARCH_OMAP4) += emif.o lpddr2_jedec_data.o lpddr2_elpida_data.o lpddr2_samsung_data.o
+obj-$(CONFIG_ARCH_OMAP4) += emif.o lpddr2_jedec_data.o lpddr2_elpida_data.o
 
 obj-$(CONFIG_OMAP_MCBSP) += mcbsp.o
 
@@ -249,7 +249,22 @@ obj-$(CONFIG_MACH_OMAP3_TOUCHBOOK)	+= board-omap3touchbook.o \
 					   hsmmc.o
 obj-$(CONFIG_MACH_OMAP_4430SDP)		+= board-4430sdp.o \
 					   hsmmc.o \
+					   omap_phy_internal.o \
+					   omap4_apps_brd_id.o
+obj-$(CONFIG_MACH_OMAP4_NOOKTABLET)	+= board-nooktablet.o\
+					   board-nooktablet-panel.o \
+					   hsmmc.o\
+					   board-44xx-identity.o \
+					   omap4_apps_brd_id.o \
 					   omap_phy_internal.o
+
+obj-$(CONFIG_MACH_OMAP_BLAZE)		+= board-44xx-tablet.o \
+					   board-44xx-identity.o \
+					   board-44xx-tablet-touch.o \
+					   board-44xx-tablet-sensors.o \
+					   board-44xx-tablet-panel.o \
+					   board-44xx-tablet-buttons.o \
+					   omap4_apps_brd_id.o
 obj-$(CONFIG_MACH_OMAP4_PANDA)		+= board-omap4panda.o \
 					   hsmmc.o \
 					   omap_phy_internal.o

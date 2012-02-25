@@ -28,7 +28,7 @@
 #include <linux/slab.h>
 
 #include "omap_l3_noc.h"
-#include "board-tuna.h"
+//#include "board-tuna.h"
 
 #define NUM_OF_L3_MASTERS ARRAY_SIZE(l3_masters)
 
@@ -104,8 +104,7 @@ static irqreturn_t l3_interrupt_handler(int irq, void *_l3)
 
 				/* Disable ABE L3 Interrupt on LTE boards */
 				if ((readl(base + regoffset + L3_MSTADDR) == 0xc0) &&
-					(readl(base + regoffset + L3_SLVADDR) == 0x3) &&
-					(omap4_tuna_get_type() == TUNA_TYPE_TORO)) {
+					(readl(base + regoffset + L3_SLVADDR) == 0x3)) {
 					pr_err("** Disabling ABE L3 interrupt for now....\n");
 					writel(0x1, base + regoffset + L3_MAINCTLREG);
 					writel(0x0, base + regoffset + L3_SVRTSTDLVL);

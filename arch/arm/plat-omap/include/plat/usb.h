@@ -4,15 +4,18 @@
 #define	__ASM_ARCH_OMAP_USB_H
 
 #include <linux/usb/musb.h>
+#include <linux/usb.h>
+#include <linux/usb/hcd.h>
+#include <linux/platform_device.h>
 #include <plat/board.h>
+
 
 #define OMAP3_HS_USB_PORTS	3
 
-enum usbhs_omap_port_mode {
+enum usbhs_omap3_port_mode {
 	OMAP_USBHS_PORT_MODE_UNUSED,
 	OMAP_EHCI_PORT_MODE_PHY,
 	OMAP_EHCI_PORT_MODE_TLL,
-	OMAP_EHCI_PORT_MODE_HSIC,
 	OMAP_OHCI_PORT_MODE_PHY_6PIN_DATSE0,
 	OMAP_OHCI_PORT_MODE_PHY_6PIN_DPDM,
 	OMAP_OHCI_PORT_MODE_PHY_3PIN_DATSE0,
@@ -25,8 +28,17 @@ enum usbhs_omap_port_mode {
 	OMAP_OHCI_PORT_MODE_TLL_2PIN_DPDM
 };
 
-struct usbhs_omap_board_data {
-	enum usbhs_omap_port_mode	port_mode[OMAP3_HS_USB_PORTS];
+enum driver_type {
+	OMAP_EHCI,
+	OMAP_OHCI
+};
+
+enum data_type {
+	OMAP_USB_HCD,
+};
+
+struct usbhs_omap_platform_data {
+	enum usbhs_omap3_port_mode	port_mode[OMAP3_HS_USB_PORTS];
 
 	/* have to be valid if phy_reset is true and portx is in phy mode */
 	int	reset_gpio_port[OMAP3_HS_USB_PORTS];
@@ -36,41 +48,30 @@ struct usbhs_omap_board_data {
 
 	unsigned			phy_reset:1;
 
-	/*
-	 * Regulators for USB PHYs.
+	/* Regulators for USB PHYs.
 	 * Each PHY can have a separate regulator.
 	 */
-	struct regulator		*regulator[OMAP3_HS_USB_PORTS];
-	/*
-	 * Each Port can have an external transceiver requiring clock control
-	 * for low power mode entry
-	 */
-	struct clk			*transceiver_clk[OMAP3_HS_USB_PORTS];
+	struct regulator        *regulator[OMAP3_HS_USB_PORTS];
 };
 
-struct ehci_hcd_omap_platform_data {
-	enum usbhs_omap_port_mode	port_mode[OMAP3_HS_USB_PORTS];
-	int				reset_gpio_port[OMAP3_HS_USB_PORTS];
-	struct regulator		*regulator[OMAP3_HS_USB_PORTS];
-	unsigned			phy_reset:1;
-	/*
-	 * Each Port can have an external transceiver requiring clock control
-	 * for low power mode entry
-	 */
-	struct clk			*transceiver_clk[OMAP3_HS_USB_PORTS];
+
+struct usbhs_omap_resource {
+	int			irq;		/* irq allocated */
+	void __iomem		*regs;		/* device memory/io */
+	u64			start;	/* memory/io resource start */
+	u64			len;	/* memory/io resource length */
 };
 
-struct ohci_hcd_omap_platform_data {
-	enum usbhs_omap_port_mode	port_mode[OMAP3_HS_USB_PORTS];
-	unsigned			es2_compatibility:1;
+struct uhhtll_apis {
+	int	(*get_platform_data) (struct usbhs_omap_platform_data *);
+	int	(*get_resource)(enum driver_type, struct usbhs_omap_resource *);
+	int	(*store) (enum driver_type, enum data_type, void *);
+	int	(*enable) (enum driver_type);
+	int	(*disable) (enum driver_type);
+	int	(*suspend) (enum driver_type);
+	int	(*resume) (enum driver_type);
 };
 
-struct usbhs_omap_platform_data {
-	enum usbhs_omap_port_mode		port_mode[OMAP3_HS_USB_PORTS];
-
-	struct ehci_hcd_omap_platform_data	*ehci_data;
-	struct ohci_hcd_omap_platform_data	*ohci_data;
-};
 /*-------------------------------------------------------------------------*/
 
 #define OMAP1_OTG_BASE			0xfffb0400
@@ -98,57 +99,33 @@ struct omap_musb_board_data {
 	u8	mode;
 	u16	power;
 	unsigned extvbus:1;
-	void	(*set_phy_power)(u8 on);
-	void	(*clear_irq)(void);
-	void	(*set_mode)(u8 mode);
-	void	(*reset)(void);
+};
+
+enum musb_state {
+	save_context = 1,
+	disable_clk,
+	restore_context,
+	enable_clk,
 };
 
 enum musb_interface    {MUSB_INTERFACE_ULPI, MUSB_INTERFACE_UTMI};
 
 extern void usb_musb_init(struct omap_musb_board_data *board_data);
 
-extern void usbhs_init(const struct usbhs_omap_board_data *pdata);
+extern void usb_uhhtll_init(const struct usbhs_omap_platform_data *pdata);
 
 extern int omap4430_phy_power(struct device *dev, int ID, int on);
 extern int omap4430_phy_set_clk(struct device *dev, int on);
 extern int omap4430_phy_init(struct device *dev);
 extern int omap4430_phy_exit(struct device *dev);
-extern int omap4430_phy_suspend(struct device *dev, int suspend);
+extern int omap4_charger_detect(void);
+extern void usbhs_wakeup(void);
+
+/* For saving and restoring the musb context during off/wakeup*/
+extern void musb_context_save_restore(enum musb_state state);
 #endif
 
-extern void am35x_musb_reset(void);
-extern void am35x_musb_phy_power(u8 on);
-extern void am35x_musb_clear_irq(void);
-extern void am35x_set_mode(u8 musb_mode);
-
-/*
- * FIXME correct answer depends on hmc_mode,
- * as does (on omap1) any nonzero value for config->otg port number
- */
-#ifdef	CONFIG_USB_GADGET_OMAP
-#define	is_usb0_device(config)	1
-#else
-#define	is_usb0_device(config)	0
-#endif
-
-void omap_otg_init(struct omap_usb_config *config);
-
-#if defined(CONFIG_USB) || defined(CONFIG_USB_MODULE)
-void omap1_usb_init(struct omap_usb_config *pdata);
-#else
-static inline void omap1_usb_init(struct omap_usb_config *pdata)
-{
-}
-#endif
-
-#if defined(CONFIG_ARCH_OMAP_OTG) || defined(CONFIG_ARCH_OMAP_OTG_MODULE)
-void omap2_usbfs_init(struct omap_usb_config *pdata);
-#else
-static inline void omap2_usbfs_init(struct omap_usb_config *pdata)
-{
-}
-#endif
+void omap_usb_init(struct omap_usb_config *pdata);
 
 /*-------------------------------------------------------------------------*/
 
@@ -279,30 +256,5 @@ static inline void omap2_usbfs_init(struct omap_usb_config *pdata)
 #define CONF2_PHYPWRDN		(1 << 3)
 #define CONF2_OTGPWRDN		(1 << 2)
 #define CONF2_DATPOL		(1 << 1)
-
-#if defined(CONFIG_ARCH_OMAP1) && defined(CONFIG_USB)
-u32 omap1_usb0_init(unsigned nwires, unsigned is_device);
-u32 omap1_usb1_init(unsigned nwires);
-u32 omap1_usb2_init(unsigned nwires, unsigned alt_pingroup);
-#else
-static inline u32 omap1_usb0_init(unsigned nwires, unsigned is_device)
-{
-	return 0;
-}
-static inline u32 omap1_usb1_init(unsigned nwires)
-{
-	return 0;
-
-}
-static inline u32 omap1_usb2_init(unsigned nwires, unsigned alt_pingroup)
-{
-	return 0;
-}
-#endif
-
-extern void usbhs_wakeup(void);
-extern void omap4_trigger_ioctrl(void);
-
-#define USBHS_EHCI_HWMODNAME	"usbhs_ehci"
 
 #endif	/* __ASM_ARCH_OMAP_USB_H */

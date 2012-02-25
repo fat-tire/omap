@@ -156,7 +156,7 @@ int __init omap_mux_init_gpio(int gpio, int val)
 	return -ENODEV;
 }
 
-static int __init _omap_mux_get_by_name(struct omap_mux_partition *partition,
+static int _omap_mux_get_by_name(struct omap_mux_partition *partition,
 					const char *muxname,
 					struct omap_mux **found_mux)
 {
@@ -213,7 +213,7 @@ static int __init _omap_mux_get_by_name(struct omap_mux_partition *partition,
 	return -ENODEV;
 }
 
-static int __init
+static int
 omap_mux_get_by_name(const char *muxname,
 			struct omap_mux_partition **found_partition,
 			struct omap_mux **found_mux)
@@ -253,6 +253,41 @@ int __init omap_mux_init_signal(const char *muxname, int val)
 	pr_debug("%s: Setting signal %s 0x%04x -> 0x%04x\n",
 			 __func__, muxname, old_mode, mux_mode);
 	omap_mux_write(partition, mux_mode, mux->reg_offset);
+	return 0;
+}
+
+int omap_mux_enable_wkup(const char *muxname)
+{
+	struct omap_mux_partition *partition = NULL;
+	struct omap_mux *mux = NULL;
+	u16 old_mode;
+	int mux_mode;
+
+	mux_mode = omap_mux_get_by_name(muxname, &partition, &mux);
+	if (mux_mode < 0)
+		return mux_mode;
+	old_mode = omap_mux_read(partition, mux->reg_offset);
+	old_mode |= OMAP_WAKEUP_EN;
+	pr_debug("%s: Setting signal %s 0x%04x -> 0x%04x\n",
+			__func__, muxname, old_mode, mux_mode);
+	omap_mux_write(partition, old_mode, mux->reg_offset);
+	return 0;
+}
+
+int omap_mux_disable_wkup(const char *muxname)
+{
+	struct omap_mux_partition *partition = NULL;
+	struct omap_mux *mux = NULL;
+	u16 old_mode;
+	int mux_mode;
+	mux_mode = omap_mux_get_by_name(muxname, &partition, &mux);
+	if (mux_mode < 0)
+		return mux_mode;
+	old_mode = omap_mux_read(partition, mux->reg_offset);
+	old_mode &= ~OMAP_WAKEUP_EN;
+	pr_debug("%s: Setting signal %s 0x%04x -> 0x%04x\n",
+			__func__, muxname, old_mode, mux_mode);
+	omap_mux_write(partition, old_mode, mux->reg_offset);
 
 	return 0;
 }
@@ -477,7 +512,8 @@ static inline void omap_mux_decode(struct seq_file *s, u16 val)
 
 	OMAP_MUX_TEST_FLAG(val, OMAP_PIN_OFF_WAKEUPENABLE);
 	if (val & OMAP_OFF_EN) {
-		if (!(val & OMAP_OFFOUT_EN)) {
+		if (val & OMAP_OFFOUT_EN) {
+			/* Input */
 			if (!(val & OMAP_OFF_PULL_UP)) {
 				OMAP_MUX_TEST_FLAG(val,
 					OMAP_PIN_OFF_INPUT_PULLDOWN);
@@ -486,6 +522,7 @@ static inline void omap_mux_decode(struct seq_file *s, u16 val)
 					OMAP_PIN_OFF_INPUT_PULLUP);
 			}
 		} else {
+			/* Output */
 			if (!(val & OMAP_OFFOUT_VAL)) {
 				OMAP_MUX_TEST_FLAG(val,
 					OMAP_PIN_OFF_OUTPUT_LOW);
@@ -966,6 +1003,16 @@ void omap_mux_set_gpio(u16 val, int gpio)
 
 	if (!m || m->reg_offset == OMAP_MUX_TERMINATOR)
 		pr_err("%s: Could not set gpio%i\n", __func__, gpio);
+}
+
+bool omap_mux_get_wakeupevent(struct omap_mux *m)
+{
+	u16 val;
+	if (IS_ERR_OR_NULL(m) || !cpu_is_omap44xx())
+		return false;
+
+	val = omap_mux_read(m->partition, m->reg_offset);
+	return val & OMAP_WAKEUP_EVENT;
 }
 
 /* Has no locking, don't use on a pad that is remuxed (by hwmod or otherwise) */

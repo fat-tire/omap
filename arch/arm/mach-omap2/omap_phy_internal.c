@@ -27,6 +27,7 @@
 #include <linux/io.h>
 #include <linux/err.h>
 #include <linux/usb.h>
+#include <linux/power_supply.h>
 
 #include <plat/usb.h>
 #include "control.h"
@@ -42,26 +43,30 @@
 #define	SESSEND				BIT(3)
 #define	IDDIG				BIT(4)
 
+#define CONTROL_USB2PHYCORE		0x620
+#define CHARGER_TYPE_PS2		0x2
+#define CHARGER_TYPE_DEDICATED		0x4
+#define CHARGER_TYPE_HOST		0x5
+#define CHARGER_TYPE_PC			0x6
+#define USB2PHY_CHGDETECTED		BIT(13)
+#define USB2PHY_CHGDETDONE              BIT(14)
+#define USB2PHY_RESTARTCHGDET           BIT(15)
+#define USB2PHY_DISCHGDET		BIT(30)
+
 static struct clk *phyclk, *clk48m, *clk32k;
 static void __iomem *ctrl_base;
-static int usbotghs_control;
 
 int omap4430_phy_init(struct device *dev)
 {
 	ctrl_base = ioremap(OMAP443X_SCM_BASE, SZ_1K);
 	if (!ctrl_base) {
-		pr_err("control module ioremap failed\n");
+		dev_err(dev, "control module ioremap failed\n");
 		return -ENOMEM;
 	}
 	/* Power down the phy */
 	__raw_writel(PHY_PD, ctrl_base + CONTROL_DEV_CONF);
-
-	if (!dev) {
-		iounmap(ctrl_base);
-		return 0;
-	}
-
 	phyclk = clk_get(dev, "ocp2scp_usb_phy_ick");
+
 	if (IS_ERR(phyclk)) {
 		dev_err(dev, "cannot clk_get ocp2scp_usb_phy_ick\n");
 		iounmap(ctrl_base);
@@ -97,8 +102,8 @@ int omap4430_phy_set_clk(struct device *dev, int on)
 		clk_enable(clk48m);
 		clk_enable(clk32k);
 		state = 1;
-	} else if (!on && state) {
- 		/* Disable the phy clocks */
+	} else if (state) {
+		/* Disable the phy clocks */
 		clk_disable(phyclk);
 		clk_disable(clk48m);
 		clk_disable(clk32k);
@@ -107,9 +112,68 @@ int omap4430_phy_set_clk(struct device *dev, int on)
 	return 0;
 }
 
+int omap4_charger_detect(void)
+{
+	unsigned long timeout;
+	int charger = 0;
+	u32 usb2phycore = 0;
+	u32 chargertype = 0;
+
+	omap4430_phy_power(NULL, 0, 1);
+	timeout = jiffies + msecs_to_jiffies(2000);
+	omap4_ctrl_pad_writel(omap4_ctrl_pad_readl(CONTROL_USB2PHYCORE) & ~USB2PHY_DISCHGDET, CONTROL_USB2PHYCORE);
+	do {
+		msleep(10);
+		usb2phycore = omap4_ctrl_pad_readl(CONTROL_USB2PHYCORE);
+		chargertype = ((usb2phycore >> 21) & 0x7);
+		if (chargertype)
+		{
+			// Give things time to settle.
+			msleep(5);
+			usb2phycore = omap4_ctrl_pad_readl(CONTROL_USB2PHYCORE);
+			chargertype = ((usb2phycore >> 21) & 0x7);
+			break;
+		}
+	} while (!time_after(jiffies, timeout));
+
+	switch (chargertype) {
+	case CHARGER_TYPE_DEDICATED:
+		charger = POWER_SUPPLY_TYPE_USB_DCP;
+		pr_info("DCP detected\n");
+		break;
+	case CHARGER_TYPE_HOST:
+		charger = POWER_SUPPLY_TYPE_USB_CDP;
+		pr_info("CDP detected\n");
+		break;
+	case CHARGER_TYPE_PC:
+		charger = POWER_SUPPLY_TYPE_USB;
+		pr_info("PC detected\n");
+		break;
+	case CHARGER_TYPE_PS2:
+		pr_info("PS/2 detected!\n");
+		// draw 500 mA anyway from this kind of charger
+		charger = POWER_SUPPLY_TYPE_USB;
+		break;
+	default:
+		printk(KERN_ERR"Unknown charger detected! %d\n", chargertype);
+		// say that it is a USB charger anyway
+		charger = POWER_SUPPLY_TYPE_USB;
+	}
+	omap4430_phy_power(NULL, 0, 0);
+
+	return charger;
+}
+
 int omap4430_phy_power(struct device *dev, int ID, int on)
 {
 	if (on) {
+		/* enabled the clocks */
+		omap4430_phy_set_clk(dev, 1);
+		/* power on the phy */
+		if (__raw_readl(ctrl_base + CONTROL_DEV_CONF) & PHY_PD) {
+			__raw_writel(~PHY_PD, ctrl_base + CONTROL_DEV_CONF);
+			msleep(200);
+		}
 		if (ID)
 			/* enable VBUS valid, IDDIG groung */
 			__raw_writel(AVALID | VBUSVALID, ctrl_base +
@@ -117,39 +181,18 @@ int omap4430_phy_power(struct device *dev, int ID, int on)
 		else
 			/*
 			 * Enable VBUS Valid, AValid and IDDIG
-			 * high impedance
+			 * high impedence
 			 */
 			__raw_writel(IDDIG | AVALID | VBUSVALID,
 						ctrl_base + USBOTGHS_CONTROL);
 	} else {
-		/* Enable session END and IDIG to high impedance. */
+		/* Enable session END and IDIG to high impedence. */
 		__raw_writel(SESSEND | IDDIG, ctrl_base +
 					USBOTGHS_CONTROL);
-	}
-	return 0;
-}
-
-int omap4430_phy_suspend(struct device *dev, int suspend)
-{
-	if (suspend) {
 		/* Disable the clocks */
 		omap4430_phy_set_clk(dev, 0);
 		/* Power down the phy */
 		__raw_writel(PHY_PD, ctrl_base + CONTROL_DEV_CONF);
-
-		/* save the context */
-		usbotghs_control = __raw_readl(ctrl_base + USBOTGHS_CONTROL);
-	} else {
-		/* Enable the internel phy clcoks */
-		omap4430_phy_set_clk(dev, 1);
-		/* power on the phy */
-		if (__raw_readl(ctrl_base + CONTROL_DEV_CONF) & PHY_PD) {
-			__raw_writel(~PHY_PD, ctrl_base + CONTROL_DEV_CONF);
-			mdelay(200);
-		}
-
-		/* restore the context */
-		__raw_writel(usbotghs_control, ctrl_base + USBOTGHS_CONTROL);
 	}
 
 	return 0;
@@ -233,7 +276,7 @@ void am35x_musb_clear_irq(void)
 	regval = omap_ctrl_readl(AM35XX_CONTROL_LVL_INTR_CLEAR);
 }
 
-void am35x_set_mode(u8 musb_mode)
+void am35x_musb_set_mode(u8 musb_mode)
 {
 	u32 devconf2 = omap_ctrl_readl(AM35XX_CONTROL_DEVCONF2);
 

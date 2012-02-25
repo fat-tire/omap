@@ -21,7 +21,7 @@
 #include <linux/moduleparam.h>
 #include <linux/usb/otg.h>
 #include <linux/spi/spi.h>
-#include <linux/hwspinlock.h>
+//#include <linux/hwspinlock.h>
 #include <linux/bootmem.h>
 #include <linux/i2c/twl.h>
 #include <linux/i2c/bq2415x.h>
@@ -83,6 +83,7 @@
 #include <linux/skbuff.h>
 #include <linux/ti_wilink_st.h>
 #include <plat/omap-serial.h>
+
 #define WILINK_UART_DEV_NAME "/dev/ttyO1"
 
 #define WILINK_UART_DEV_NAME "/dev/ttyO1"
@@ -732,10 +733,10 @@ static struct ti_st_plat_data wilink_pdata = {
 	.baud_rate = 3000000,//3686400,
 	.suspend = plat_wlink_kim_suspend,
 	.resume = plat_wlink_kim_resume,
-	.chip_asleep = plat_uart_disable,
+/*	.chip_asleep = plat_uart_disable,
 	.chip_awake  = plat_uart_enable,
 	.chip_enable = plat_uart_enable,
-	.chip_disable = plat_uart_disable,
+	.chip_disable = plat_uart_disable, */
 };
 
 static struct platform_device wl128x_device = {
@@ -833,7 +834,7 @@ static struct twl4030_usb_data omap4_usbphy_data = {
 	.phy_exit	= omap4430_phy_exit,
 	.phy_power	= omap4430_phy_power,
 	.phy_set_clock	= omap4430_phy_set_clk,
-	.phy_suspend	= omap4430_phy_suspend,
+//	.phy_suspend	= omap4430_phy_suspend,
 };
 
 static struct omap2_hsmmc_info mmc[] = {
@@ -1612,11 +1613,11 @@ static void __init blaze_pmic_mux_init(void)
 	omap_mux_init_signal("sys_nirq1", OMAP_PIN_INPUT_PULLUP |
 						OMAP_WAKEUP_EN);
 }
-
+/*
 static void __init omap_i2c_hwspinlock_init(int bus_id, int spinlock_id,
 				struct omap_i2c_bus_board_data *pdata)
 {
-	/* spinlock_id should be -1 for a generic lock request */
+	/* spinlock_id should be -1 for a generic lock request
 	if (spinlock_id < 0)
 		pdata->handle = hwspin_lock_request();
 	else
@@ -1630,6 +1631,7 @@ static void __init omap_i2c_hwspinlock_init(int bus_id, int spinlock_id,
 								bus_id);
 	}
 }
+*/
 
 static struct omap_i2c_bus_board_data __initdata sdp4430_i2c_1_bus_pdata;
 static struct omap_i2c_bus_board_data __initdata sdp4430_i2c_2_bus_pdata;
@@ -1639,7 +1641,7 @@ static struct omap_i2c_bus_board_data __initdata sdp4430_i2c_4_bus_pdata;
 static int __init omap4_i2c_init(void)
 {
 	int err;
-
+/*
 	omap_i2c_hwspinlock_init(1, 0, &sdp4430_i2c_1_bus_pdata);
 	omap_i2c_hwspinlock_init(2, 1, &sdp4430_i2c_2_bus_pdata);
 	omap_i2c_hwspinlock_init(3, 2, &sdp4430_i2c_3_bus_pdata);
@@ -1649,7 +1651,7 @@ static int __init omap4_i2c_init(void)
 	omap_register_i2c_bus_board_data(2, &sdp4430_i2c_2_bus_pdata);
 	omap_register_i2c_bus_board_data(3, &sdp4430_i2c_3_bus_pdata);
 	omap_register_i2c_bus_board_data(4, &sdp4430_i2c_4_bus_pdata);
-
+*/
 	omap4_pmic_init("twl6030", &sdp4430_twldata);
 	
 	err=i2c_register_board_info(1,sdp4430_i2c_1_boardinfo, ARRAY_SIZE(sdp4430_i2c_1_boardinfo));
@@ -2058,7 +2060,7 @@ static void omap4_sdp4430_wifi_init(void)
 }
 
 // #if defined(CONFIG_USB_EHCI_HCD_OMAP) || defined(CONFIG_USB_OHCI_HCD_OMAP3)
-struct usbhs_omap_board_data usbhs_bdata __initdata = {
+/*struct usbhs_omap_board_data usbhs_bdata __initdata = {
 	.port_mode[0] = OMAP_EHCI_PORT_MODE_PHY,
 	.port_mode[1] = OMAP_OHCI_PORT_MODE_PHY_6PIN_DATSE0,
 	.port_mode[2] = OMAP_USBHS_PORT_MODE_UNUSED,
@@ -2067,7 +2069,7 @@ struct usbhs_omap_board_data usbhs_bdata __initdata = {
 	.reset_gpio_port[1]  = -EINVAL,
 	.reset_gpio_port[2]  = -EINVAL
 };
-
+*/
 static void __init omap4_ehci_ohci_init(void)
 {
 
@@ -2081,7 +2083,7 @@ static void __init omap4_ehci_ohci_init(void)
 // 		gpio_direction_output(BLAZE_MDM_PWR_EN_GPIO, 1);
 // 	}
 
-	usbhs_init(&usbhs_bdata);
+/*	usbhs_init(&usbhs_bdata); */
 
 	return;
 

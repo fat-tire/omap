@@ -511,7 +511,7 @@ static int __devinit twl6030_usb_probe(struct platform_device *pdev)
 	twl->otg.set_host	= twl6030_set_host;
 	twl->otg.set_peripheral	= twl6030_set_peripheral;
 	twl->otg.set_vbus	= twl6030_set_vbus;
-	twl->otg.set_hz_mode	= twl6030_set_hz_mode;
+//	twl->otg.set_hz_mode	= twl6030_set_hz_mode;
 	twl->otg.init		= twl6030_phy_init;
 	twl->otg.set_power	= twl6030_set_power;
 	twl->otg.shutdown	= twl6030_phy_shutdown;

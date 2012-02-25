@@ -286,14 +286,6 @@ obj-$(CONFIG_MACH_TUNA)			+= board-tuna-connector.o
 obj-$(CONFIG_MACH_TUNA)			+= board-tuna-pogo.o
 obj-$(CONFIG_MACH_TUNA)			+= board-tuna-usbhost.o
 
-obj-$(CONFIG_MACH_OMAP4_NOOKTABLET)	+= board-nooktablet.o \
-					   board-nooktablet-panel.o \
-                                           board-nooktablet-peripherals.o \
-                                           omap_phy_internal.o \
-                                           board-44xx-identity.o \
-                                           omap4_apps_brd_id.o \
-                                           hsmmc.o
-
 obj-$(CONFIG_MACH_OMAP3517EVM)		+= board-am3517evm.o \
 					   omap_phy_internal.o \
 
@@ -331,6 +323,10 @@ obj-y					+= common-board-devices.o
 
 obj-$(CONFIG_OMAP_REMOTE_PROC)		+= remoteproc.o
 obj-$(CONFIG_OMAP_HSI_DEVICE)		+= omap_hsi.o
+obj-$(CONFIG_ION_OMAP)                  += omap4_ion.o
 obj-$(CONFIG_SEC_MODEM)			+= board-tuna-modems.o
 obj-$(CONFIG_ARCH_OMAP4)		+= omap_dmm.o
 obj-$(CONFIG_OMAP_FIQ_DEBUGGER)		+= omap_fiq_debugger.o
+
+obj-$(CONFIG_OMAP_RAM_CONSOLE)          += omap_ram_console.o
+

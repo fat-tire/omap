@@ -263,7 +263,7 @@ void ft5x06_xy_worker(struct work_struct *work)
     u8 id_2 = 0;
     static u8 prev_gest = 0;
     static u8 gest_count = 0;
-
+    int clear_touch = 0;    /* ics multi-touch workaround */
 
     if (inpt == NULL )
     {
@@ -514,6 +514,19 @@ void ft5x06_xy_worker(struct work_struct *work)
             break;
     }
 
+
+       /* Workaround ICS Multi-touch issue */
+       clear_touch = 0;
+       for (id = 0; id < FT_NUM_MT_TCH_ID; id++) {
+               if (ts->act_trk[id] == 1) {
+               clear_touch++;
+               }
+       }
+       if (clear_touch == 2 && cur_tch == 0) {
+               clear_touch = 1;
+       }
+
+
     /* handle Multi-touch signals */
     if (ts->platform_data->use_mt)
     {
@@ -523,7 +536,7 @@ void ft5x06_xy_worker(struct work_struct *work)
              * is missing from the current event */
             for (id = 0; id < FT_NUM_TRK_ID; id++)
             {
-                if ((ts->act_trk[id] != FT_NTCH) && (cur_trk[id] == FT_NTCH))
+                if ((ts->act_trk[id] != FT_NTCH) && (cur_trk[id] == FT_NTCH) && (clear_touch == 1))
                 {
                     input_report_abs(ts->input, ABS_MT_TRACKING_ID, id);
                     input_report_abs(ts->input, ABS_MT_TOUCH_MAJOR, FT_NTCH);

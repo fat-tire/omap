@@ -309,11 +309,17 @@ static struct attribute_group boxer_lcd_spi_attributes_group = {
 
 static int boxer_spi_probe(struct spi_device *spi)
 {
+	int ret;
 	printk(KERN_INFO " boxer : %s called , line %d\n", __FUNCTION__ , __LINE__);
 	spi->mode = SPI_MODE_0;
 	spi->bits_per_word = 16;
-	spi->chip_select=0;
-	spi_setup(spi);
+//	spi->chip_select = 0;
+	
+	ret = spi_setup(spi);
+	if (ret < 0) {
+		printk(KERN_INFO "spi_setup failed: %d\n", ret);
+		return ret;
+	}
 
 	boxer_spi_device = spi;
 

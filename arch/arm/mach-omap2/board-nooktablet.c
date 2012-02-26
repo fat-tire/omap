@@ -151,13 +151,10 @@ struct kxtf9_platform_data kxtf9_platform_data_here = {
 
 	/* Map the axes from the sensor to the device */
 	/* SETTINGS FOR acclaim */
-	.axis_map_x = 1,
-	.axis_map_y = 0,
-	.axis_map_z = 2,
-	.axis_map_x     = 1,
-	.axis_map_y     = 0,
+	.axis_map_x     = 0,
+	.axis_map_y     = 1,
 	.axis_map_z     = 2,
-	.negate_x       = 1,
+	.negate_x       = 0,
 	.negate_y       = 0,
 	.negate_z       = 0,
 	.data_odr_init          = ODR12_5F,
@@ -1464,7 +1461,7 @@ static void __init omap_4430sdp_reserve(void)
 	omap_reserve();
 }
 
-MACHINE_START(OMAP4_NOOKTABLET, "OMAP4430 NOOKTABLET")
+MACHINE_START(OMAP4_NOOKTABLET, "acclaim")
 	.boot_params	= 0x80000100,
 	.reserve	= omap_4430sdp_reserve,
 	.map_io		= omap_4430sdp_map_io,

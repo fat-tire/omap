@@ -137,19 +137,19 @@ static inline struct boxer_panel_data * get_panel_data(struct omap_dss_device *d
 
 static int nooktablet_panel_enable_lcd(struct omap_dss_device *dssdev)
 {
-//	  pr_info("NookTablet LCD enable!\n");
-	  printk("Enabling backlight PWM for LCD\n");
-	  acclaim4430_disp_backlight_data.def_on = 1; // change the PWM polarity
-// 
-//         //gpio_request(38, "lcd backlight evt2");
-// 
-//         //gpio_request(44, "lcd CABC0");
-         gpio_direction_output(44,0);
-         gpio_set_value(44,0);
-// 
-//         //gpio_request(45, "lcd CABC1");
-         gpio_direction_output(45,0);
-         gpio_set_value(45,0);
+// //	  pr_info("NookTablet LCD enable!\n");
+// 	  printk("Enabling backlight PWM for LCD\n");
+// 	  acclaim4430_disp_backlight_data.def_on = 1; // change the PWM polarity
+// // 
+// //         //gpio_request(38, "lcd backlight evt2");
+// // 
+// //         //gpio_request(44, "lcd CABC0");
+//          gpio_direction_output(44,0);
+//          gpio_set_value(44,0);
+// // 
+// //         //gpio_request(45, "lcd CABC1");
+//          gpio_direction_output(45,0);
+//          gpio_set_value(45,0);
 	return 0;
 }
 

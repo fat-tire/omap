@@ -78,6 +78,8 @@ static inline struct omap_pwm_led *work_to_omap_pwm_led(struct work_struct *work
 static void omap_pwm_led_set_blink(struct omap_pwm_led *led)
 {
 	int def_on = 1;
+	
+	printk(KERN_INFO "omap_pwm_led_set_blink function\n");
 
 	if (led->pdata)
 		def_on = led->pdata->def_on;
@@ -191,28 +193,30 @@ static void omap_pwm_led_power_on(struct omap_pwm_led *led)
 	unsigned int timerval;
 	int err;
 
+	printk(KERN_INFO "omap_pwm_led_power_on function\n");
 	if (led->pdata)
 		def_on = led->pdata->def_on;
 
 	if (led->powered)
 		return;
+	printk(KERN_INFO "omap_pwm_led_power_on :  led->powered=1\n");
 	led->powered = 1;
 
 	/* Select clock source */
-//	pr_info("Omap DM timer enable\n");
+	pr_info("Omap DM timer enable\n");
 	omap_dm_timer_enable(led->intensity_timer);
-//	pr_info("OMAP DM timer set source\n");
+	pr_info("OMAP DM timer set source\n");
 	omap_dm_timer_set_source(led->intensity_timer, OMAP_TIMER_SRC_SYS_CLK);
-//	pr_info("OMAP DM timer set prescaler\n");
+	pr_info("OMAP DM timer set prescaler\n");
 	omap_dm_timer_set_prescaler(led->intensity_timer, COUNTER_DEVIDER);
 	/* Enable PWM timers */
 	if (led->blink_timer != NULL) {
-//		pr_info("Enable PWM timer start\n");
+		pr_info("Enable PWM timer start\n");
 		omap_dm_timer_enable(led->blink_timer);
 		omap_dm_timer_set_source(led->blink_timer,
 					 OMAP_TIMER_SRC_32_KHZ);
 		omap_pwm_led_set_blink(led);
-//		pr_info("Enable PWM timer finish\n");
+		pr_info("Enable PWM timer finish\n");
 	}
 
 	omap_dm_timer_set_pwm(led->intensity_timer, def_on ? 0 : 1, 1,
@@ -246,7 +250,7 @@ static void omap_pwm_led_power_off(struct omap_pwm_led *led)
 	if (!led->powered)
 		return;
 	led->powered = 0;
-
+	printk(KERN_INFO "omap_pwm_led_power_on :  led->powered=0\n");
 	if (led->pdata->set_power != NULL)
 		led->pdata->set_power(led->pdata, 0);
 
@@ -277,6 +281,7 @@ static void omap_pwm_led_set(struct led_classdev *led_cdev,
 {
 	struct omap_pwm_led *led = cdev_to_omap_pwm_led(led_cdev);
 
+	printk(KERN_INFO "omap_pwm_led_set:  led_brightness = %u\n", value);
 	if (value != led->brightness) {
 		led->brightness = value;
 		schedule_work(&led->work);
@@ -375,6 +380,7 @@ static int omap_pwm_led_probe(struct platform_device *pdev)
 	struct omap_pwm_led *led;
 	int ret;
 
+	printk(KERN_INFO "omap_pwm_led_probe\n");
 	led = kzalloc(sizeof(struct omap_pwm_led), GFP_KERNEL);
 	if (led == NULL) {
 		dev_err(&pdev->dev, "No memory for device\n");
@@ -545,6 +551,7 @@ static struct platform_driver omap_pwm_led_driver = {
 
 static int __init omap_pwm_led_init(void)
 {
+	printk(KERN_INFO "omap_pwm_led_init\n");
 	return platform_driver_register(&omap_pwm_led_driver);
 }
 

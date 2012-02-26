@@ -22,15 +22,10 @@
 #include <linux/spi/spi.h>
 #include <linux/leds.h>
 #include <linux/leds_pwm.h>
-//#include <linux/leds-omap4430sdp-display.h>
 #include <linux/interrupt.h>
 #include <linux/delay.h>
 
 #include <linux/omapfb.h>
-
-//#include <linux/twl6040-vib.h>
-//#include <linux/wl12xx.h>
-//#include <linux/cdc_tcxo.h>
 
 #include <mach/hardware.h>
 #include <mach/omap4-common.h>
@@ -45,8 +40,6 @@
 #include <plat/board.h>
 #include <plat/common.h>
 #include "control.h"
-//#include <plat/timer-gp.h>
-//#include <plat/display.h>
 #include <video/omapdss.h>
 #include <video/omap-panel-nokia-dsi.h>
 #include <plat/vram.h>
@@ -55,9 +48,7 @@
 #include <plat/omap_hwmod.h>
 
 #include <linux/wakelock.h>
-//#include <plat/opp_twl_tps.h>
 #include <plat/syntm12xx.h>
-//#include <plat/hwspinlock.h>
 #include <plat/dmtimer.h>
 #include "mux.h"
 
@@ -121,7 +112,7 @@ static void sdp4430_panel_get_resource(void)
 {
 	int ret_val = 0;
 
-	pr_info("sdp4430_panel_get_resource\n");
+//	pr_info("sdp4430_panel_get_resource\n");
 	ret_val = gpio_request(38, "BOXER BL PWR EN");
 
 	if ( ret_val ) {
@@ -146,7 +137,7 @@ static inline struct boxer_panel_data * get_panel_data(struct omap_dss_device *d
 
 static int nooktablet_panel_enable_lcd(struct omap_dss_device *dssdev)
 {
-	  pr_info("NookTablet LCD enable!\n");
+//	  pr_info("NookTablet LCD enable!\n");
 	  printk("Enabling backlight PWM for LCD\n");
 	  acclaim4430_disp_backlight_data.def_on = 1; // change the PWM polarity
 // 
@@ -193,25 +184,9 @@ static struct omap_dss_device *sdp4430_dss_devices[] = {
  	.default_device	= &sdp4430_boxer_device,
  };
  
-//  #define BLAZE_FB_RAM_SIZE                SZ_16M /* 1920×1080*4 * 2 */
-//  static struct omapfb_platform_data blaze_fb_pdata = {
-//  	.mem_desc = {
-//  		.region_cnt = 1,
-//  		.region = {
-//  			[0] = {
-//  				.size = BLAZE_FB_RAM_SIZE,
-//  			},
-//  		},
-//  	},
-//  };
-
 void __init acclaim_panel_init(void)
 {
 	sdp4430_panel_get_resource();
-
-//	sdp4430_hdmi_mux_init();
-// 	omap_vram_set_sdram_vram(BLAZE_FB_RAM_SIZE, 0);
-// 	omapfb_set_platform_data(&blaze_fb_pdata);
 	omap_display_init(&sdp4430_dss_data);
 	acclaim4430_init_display_led();	
 	platform_add_devices(sdp4430_devices, ARRAY_SIZE(sdp4430_devices));

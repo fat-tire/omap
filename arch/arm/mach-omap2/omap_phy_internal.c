@@ -55,6 +55,7 @@
 
 static struct clk *phyclk, *clk48m, *clk32k;
 static void __iomem *ctrl_base;
+static int usbotghs_control;
 
 int omap4430_phy_init(struct device *dev)
 {
@@ -193,6 +194,32 @@ int omap4430_phy_power(struct device *dev, int ID, int on)
 		omap4430_phy_set_clk(dev, 0);
 		/* Power down the phy */
 		__raw_writel(PHY_PD, ctrl_base + CONTROL_DEV_CONF);
+	}
+
+	return 0;
+}
+
+int omap4430_phy_suspend(struct device *dev, int suspend)
+{
+	if (suspend) {
+		/* Disable the clocks */
+		omap4430_phy_set_clk(dev, 0);
+		/* Power down the phy */
+		__raw_writel(PHY_PD, ctrl_base + CONTROL_DEV_CONF);
+
+		/* save the context */
+		usbotghs_control = __raw_readl(ctrl_base + USBOTGHS_CONTROL);
+	} else {
+		/* Enable the internel phy clcoks */
+		omap4430_phy_set_clk(dev, 1);
+		/* power on the phy */
+		if (__raw_readl(ctrl_base + CONTROL_DEV_CONF) & PHY_PD) {
+			__raw_writel(~PHY_PD, ctrl_base + CONTROL_DEV_CONF);
+			mdelay(200);
+		}
+
+		/* restore the context */
+		__raw_writel(usbotghs_control, ctrl_base + USBOTGHS_CONTROL);
 	}
 
 	return 0;

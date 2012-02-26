@@ -28,6 +28,7 @@
 #include <mach/irqs.h>
 #include <mach/gpio.h>
 #include <asm/mach/irq.h>
+#include "../../../arch/arm/mach-omap2/pm.h"
 #include <plat/omap-pm.h>
 #include <plat/usb.h> /* for omap4_trigger_ioctrl */
 

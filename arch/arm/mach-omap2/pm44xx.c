@@ -784,7 +784,7 @@ static const struct platform_suspend_ops omap_pm_ops = {
 	.valid		= suspend_valid_only_mem,
 };
 #else
-void omap4_enter_sleep(unsigned int cpu, unsigned int power_state, bool suspend){ return; }
+void omap4_enter_sleep(unsigned int cpu, unsigned int power_state){ return; }
 #endif /* CONFIG_SUSPEND */
 
 /**

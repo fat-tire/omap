@@ -1960,13 +1960,13 @@ static void __init omap_4430sdp_init(void)
 	if (status)
 		pr_err("Keypad initialization failed: %d\n", status);
 
-// 	spi_register_board_info(sdp4430_spi_board_info,
-// 			ARRAY_SIZE(sdp4430_spi_board_info));
+ 	spi_register_board_info(sdp4430_spi_board_info,
+ 			ARRAY_SIZE(sdp4430_spi_board_info));
 	
 	omap_dmm_init();
 	printk("Acclaim panel init\n");
-// 	acclaim_panel_init();
-// 	printk("Acclaim panel init finish\n");
+ 	acclaim_panel_init();
+ 	printk("Acclaim panel init finish\n");
 	
 //	blaze_panel_init();
 //	blaze_keypad_init();

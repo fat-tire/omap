@@ -151,7 +151,7 @@ static irqreturn_t intensity_timer_match_interrupt(int irq, void *arg)
 	*/
 	printk(KERN_INFO "Start read counter from OMAP DM timer...");
 	counter = omap_dm_timer_read_counter(timer);
-	printk(KERN_INFO "OMAP DM timer read counter = %d", counter);
+	printk(KERN_INFO "OMAP DM timer read counter = %u", counter);
 
 	if ((counter + COUNTER_TO_MATCH_GUARD) < match_val)
 		omap_pwm_set_match(timer, match_val);

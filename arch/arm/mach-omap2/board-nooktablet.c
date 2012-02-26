@@ -834,7 +834,7 @@ static struct twl4030_usb_data omap4_usbphy_data = {
 	.phy_exit	= omap4430_phy_exit,
 	.phy_power	= omap4430_phy_power,
 	.phy_set_clock	= omap4430_phy_set_clk,
-//	.phy_suspend	= omap4430_phy_suspend,
+	.phy_suspend	= omap4430_phy_suspend,
 };
 
 static struct omap2_hsmmc_info mmc[] = {
@@ -853,14 +853,14 @@ static struct omap2_hsmmc_info mmc[] = {
 	{
 		.mmc		= 1,
 		.caps		= MMC_CAP_4_BIT_DATA | MMC_CAP_8_BIT_DATA | MMC_CAP_1_8V_DDR,
-		.gpio_cd	= 0,//-EINVAL,
-		.gpio_wp	= 4,//-EINVAL,
-// 		.ocr_mask	= MMC_VDD_165_195,
+		.gpio_cd	= -EINVAL,
+		.gpio_wp	= -EINVAL,
+ 		.nonremovable = false,
 #ifdef CONFIG_PM_RUNTIME
 		.power_saving	= true,
 #endif
 	},
-/*#ifdef CONFIG_TIWLAN_SDIO
+#ifdef CONFIG_TIWLAN_SDIO
 	{
 		.mmc		= 3,
 		.caps		= MMC_CAP_4_BIT_DATA,
@@ -877,7 +877,7 @@ static struct omap2_hsmmc_info mmc[] = {
 		.ocr_mask	= MMC_VDD_165_195,
 		.nonremovable	= true,
 	},
-#endif*/
+#endif
   // 	{
 // 		.mmc		= 2,
 // 		.caps		= MMC_CAP_4_BIT_DATA | MMC_CAP_8_BIT_DATA |
@@ -957,11 +957,6 @@ static struct platform_device omap_vwlan_device = {
 		.platform_data = &sdp4430_vwlan,
                }
 };
-// static struct regulator_consumer_supply sdp4430_cam2_supply[] = {
-// 	{
-// 		.supply = "cam2pwr",
-// 	},
-// };
 
 static int omap4_twl6030_hsmmc_late_init(struct device *dev)
 {
@@ -1685,212 +1680,6 @@ static int __init omap4_i2c_init(void)
 static bool enable_suspend_off = true;
 module_param(enable_suspend_off, bool, S_IRUSR | S_IRGRP | S_IROTH);
 
-// static int dsi1_panel_set_backlight(struct omap_dss_device *dssdev, int level)
-// {
-// 	int r;
-// 
-// 	r = twl_i2c_write_u8(TWL_MODULE_PWM, 0x7F, LED_PWM2OFF);
-// 	if (r)
-// 		return r;
-// 
-// 	if (level > 1) {
-// 		if (level == 255)
-// 			level = 0x7F;
-// 		else
-// 			level = (~(level/2)) & 0x7F;
-// 
-// 		r = twl_i2c_write_u8(TWL_MODULE_PWM, level, LED_PWM2ON);
-// 		if (r)
-// 			return r;
-// 		r = twl_i2c_write_u8(TWL6030_MODULE_ID1, 0x30, TWL6030_TOGGLE3);
-// 		if (r)
-// 			return r;
-// 	} else if (level <= 1) {
-// 		r = twl_i2c_write_u8(TWL6030_MODULE_ID1, 0x08, TWL6030_TOGGLE3);
-// 		if (r)
-// 			return r;
-// 		r = twl_i2c_write_u8(TWL6030_MODULE_ID1, 0x28, TWL6030_TOGGLE3);
-// 		if (r)
-// 			return r;
-// 		r = twl_i2c_write_u8(TWL6030_MODULE_ID1, 0x00, TWL6030_TOGGLE3);
-// 		if (r)
-// 			return r;
-// 	}
-
-// 	return 0;
-// }
-
-
-//static struct nokia_dsi_panel_data dsi1_panel;
-
-// static void sdp4430_lcd_init(void)
-// {
-// 	u32 reg;
-// 	int status;
-// 
-// 	/* Enable 3 lanes in DSI1 module, disable pull down */
-// 	reg = omap4_ctrl_pad_readl(OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_DSIPHY);
-// 	reg &= ~OMAP4_DSI1_LANEENABLE_MASK;
-// 	reg |= 0x7 << OMAP4_DSI1_LANEENABLE_SHIFT;
-// 	reg &= ~OMAP4_DSI1_PIPD_MASK;
-// 	reg |= 0x7 << OMAP4_DSI1_PIPD_SHIFT;
-// 	omap4_ctrl_pad_writel(reg, OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_DSIPHY);
-// 
-// 	/* Panel Taal reset and backlight GPIO init */
-// 	status = gpio_request_one(dsi1_panel.reset_gpio, GPIOF_DIR_OUT,
-// 		"lcd_reset_gpio");
-// 	if (status)
-// 		pr_err("%s: Could not get lcd_reset_gpio\n", __func__);
-// 
-// 	if (dsi1_panel.use_ext_te) {
-// 		status = omap_mux_init_signal("gpmc_ncs4.gpio_101",
-// 				OMAP_PIN_INPUT_PULLUP);
-// 		if (status)
-// 			pr_err("%s: Could not get ext_te gpio\n", __func__);
-// 	}
-// 
-// 	status = gpio_request_one(LCD_BL_GPIO, GPIOF_DIR_OUT, "lcd_bl_gpio");
-// 	if (status)
-// 		pr_err("%s: Could not get lcd_bl_gpio\n", __func__);
-// 
-// 	gpio_set_value(LCD_BL_GPIO, 0);
-// }
-
-// static struct gpio sdp4430_hdmi_gpios[] = {
-// 	{HDMI_GPIO_CT_CP_HPD,  GPIOF_OUT_INIT_HIGH,    "hdmi_gpio_hpd"   },
-// 	{HDMI_GPIO_LS_OE,      GPIOF_OUT_INIT_HIGH,    "hdmi_gpio_ls_oe" },
-// };
-
-
-// static void sdp4430_hdmi_mux_init(void)
-// {
-// 	u32 r;
-// 	int status;
-// 	/* PAD0_HDMI_HPD_PAD1_HDMI_CEC */
-// 	omap_mux_init_signal("hdmi_hpd.hdmi_hpd",
-// 				OMAP_PIN_INPUT_PULLDOWN);
-// 	omap_mux_init_signal("gpmc_wait2.gpio_100",
-// 			OMAP_PIN_INPUT_PULLDOWN);
-// 	omap_mux_init_signal("hdmi_cec.hdmi_cec",
-// 			OMAP_PIN_INPUT_PULLUP);
-// 	/* PAD0_HDMI_DDC_SCL_PAD1_HDMI_DDC_SDA */
-// 	omap_mux_init_signal("hdmi_ddc_scl.hdmi_ddc_scl",
-// 			OMAP_PIN_INPUT_PULLUP);
-// 	omap_mux_init_signal("hdmi_ddc_sda.hdmi_ddc_sda",
-// 			OMAP_PIN_INPUT_PULLUP);
-// 
-// 	/* strong pullup on DDC lines using unpublished register */
-// 	r = ((1 << 24) | (1 << 28)) ;
-// 	omap4_ctrl_pad_writel(r, OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_I2C_1);
-// 
-// 	gpio_request(HDMI_GPIO_HPD, NULL);
-// 	omap_mux_init_gpio(HDMI_GPIO_HPD, OMAP_PIN_INPUT | OMAP_PULL_ENA);
-// 	gpio_direction_input(HDMI_GPIO_HPD);
-// 
-// 	status = gpio_request_array(sdp4430_hdmi_gpios,
-// 			ARRAY_SIZE(sdp4430_hdmi_gpios));
-// 	if (status)
-// 		pr_err("%s:Cannot request HDMI GPIOs %x \n", __func__, status);
-// }
-
-
-
-// static struct nokia_dsi_panel_data dsi1_panel = {
-// 		.name		= "taal",
-// 		.reset_gpio	= 102,
-// 		.use_ext_te	= false,
-// 		.ext_te_gpio	= 101,
-// 		.esd_interval	= 0,
-// 		.set_backlight	= dsi1_panel_set_backlight,
-// };
-// 
-// static struct omap_dss_device sdp4430_lcd_device = {
-// 	.name			= "lcd",
-// 	.driver_name		= "taal",
-// 	.type			= OMAP_DISPLAY_TYPE_DSI,
-// 	.data			= &dsi1_panel,
-// 	.phy.dsi		= {
-// 		.clk_lane	= 1,
-// 		.clk_pol	= 0,
-// 		.data1_lane	= 2,
-// 		.data1_pol	= 0,
-// 		.data2_lane	= 3,
-// 		.data2_pol	= 0,
-// 	},
-// 
-// 	.clocks = {
-// 		.dispc = {
-// 			.channel = {
-// 				.lck_div	= 1,	/* Logic Clock = 172.8 MHz */
-// 				.pck_div	= 5,	/* Pixel Clock = 34.56 MHz */
-// 				.lcd_clk_src	= OMAP_DSS_CLK_SRC_DSI_PLL_HSDIV_DISPC,
-// 			},
-// 			.dispc_fclk_src	= OMAP_DSS_CLK_SRC_FCK,
-// 		},
-// 
-// 		.dsi = {
-// 			.regn		= 16,	/* Fint = 2.4 MHz */
-// 			.regm		= 180,	/* DDR Clock = 216 MHz */
-// 			.regm_dispc	= 5,	/* PLL1_CLK1 = 172.8 MHz */
-// 			.regm_dsi	= 5,	/* PLL1_CLK2 = 172.8 MHz */
-// 
-// 			.lp_clk_div	= 10,	/* LP Clock = 8.64 MHz */
-// 			.dsi_fclk_src	= OMAP_DSS_CLK_SRC_DSI_PLL_HSDIV_DSI,
-// 		},
-// 	},
-// 	.channel = OMAP_DSS_CHANNEL_LCD,
-// 	.skip_init = false,
-// };
-
-// static struct omap_dss_device sdp4430_hdmi_device = {
-// 	.name = "hdmi",
-// 	.driver_name = "hdmi_panel",
-// 	.type = OMAP_DISPLAY_TYPE_HDMI,
-// 	.clocks	= {
-// 		.dispc	= {
-// 			.dispc_fclk_src	= OMAP_DSS_CLK_SRC_FCK,
-// 		},
-// 		.hdmi	= {
-// 			.regn	= 15,
-// 			.regm2	= 1,
-// 		},
-// 	},
-// 	.hpd_gpio = HDMI_GPIO_HPD,
-// 	.channel = OMAP_DSS_CHANNEL_DIGIT,
-// };
-
-// static struct omap_dss_device *sdp4430_dss_devices[] = {
-// 	&sdp4430_lcd_device,
-// //	&sdp4430_hdmi_device,
-// };
-// 
-// static struct omap_dss_board_info sdp4430_dss_data = {
-// 	.num_devices	= ARRAY_SIZE(sdp4430_dss_devices),
-// 	.devices	= sdp4430_dss_devices,
-// 	.default_device	= &sdp4430_lcd_device,
-// };
-// 
-// #define BLAZE_FB_RAM_SIZE                SZ_16M /* 1920×1080*4 * 2 */
-// static struct omapfb_platform_data blaze_fb_pdata = {
-// 	.mem_desc = {
-// 		.region_cnt = 1,
-// 		.region = {
-// 			[0] = {
-// 				.size = BLAZE_FB_RAM_SIZE,
-// 			},
-// 		},
-// 	},
-// };
-
-// static void omap_4430sdp_display_init(void)
-// {
-// 	sdp4430_lcd_init();
-// 	sdp4430_hdmi_mux_init();
-// 	omap_vram_set_sdram_vram(BLAZE_FB_RAM_SIZE, 0);
-// 	omapfb_set_platform_data(&blaze_fb_pdata);
-// 	omap_display_init(&sdp4430_dss_data);
-// }
-
 #ifdef CONFIG_OMAP_MUX
 static struct omap_board_mux board_mux[] __initdata = {
 	OMAP4_MUX(USBB1_ULPITLL_CLK, OMAP_MUX_MODE3 | OMAP_PIN_OUTPUT),
@@ -2171,13 +1960,13 @@ static void __init omap_4430sdp_init(void)
 	if (status)
 		pr_err("Keypad initialization failed: %d\n", status);
 
-	spi_register_board_info(sdp4430_spi_board_info,
-			ARRAY_SIZE(sdp4430_spi_board_info));
+// 	spi_register_board_info(sdp4430_spi_board_info,
+// 			ARRAY_SIZE(sdp4430_spi_board_info));
 	
 	omap_dmm_init();
 	printk("Acclaim panel init\n");
-	acclaim_panel_init();
-	printk("Acclaim panel init finish\n");
+// 	acclaim_panel_init();
+// 	printk("Acclaim panel init finish\n");
 	
 //	blaze_panel_init();
 //	blaze_keypad_init();

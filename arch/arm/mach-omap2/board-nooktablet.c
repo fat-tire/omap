@@ -535,10 +535,31 @@ static struct platform_device wl128x_device = {
 	.dev.platform_data = &wilink_pdata,
 };
 
+#ifdef CONFIG_TI_ST
+static bool is_bt_active(void)
+{
+        struct platform_device  *pdev;
+        struct kim_data_s       *kim_gdata;
+
+        pdev = &wl128x_device;
+        kim_gdata = dev_get_drvdata(&pdev->dev);
+        if (st_ll_getstate(kim_gdata->core_data) != ST_LL_ASLEEP &&
+                        st_ll_getstate(kim_gdata->core_data) != ST_LL_INVALID)
+                return true;
+        else
+                return false;
+}
+#else
+#define is_bt_active NULL
+#endif
+
+
+#ifdef CONFIG_BT_WILINK
 static struct platform_device btwilink_device = {
-	.name = "btwilink",
-	.id = -1,
+        .name = "btwilink",
+        .id = -1,
 };
+#endif
 
 // static struct twl4030_madc_platform_data twl6030_gpadc = {
 // 	.irq_line = -1,
@@ -720,6 +741,7 @@ static int omap4_twl6030_hsmmc_late_init(struct device *dev)
 						MMCDETECT_INTR_OFFSET;
 		pdata->slots[0].card_detect = twl6030_mmc_card_detect;
 	}
+
 #ifndef CONFIG_TIWLAN_SDIO
  	/* Set the MMC5 (wlan) power function */
  	if (pdev->id == 4)
@@ -1405,6 +1427,17 @@ static void __init omap_4430sdp_init(void)
 #ifdef CONFIG_BATTERY_MAX17042
 	max17042_dev_init();
 #endif
+#ifdef CONFIG_TI_ST
+        printk("acclaim: registering wl127x device.\n");
+        platform_device_register(&wl128x_device);
+#endif
+
+#ifdef CONFIG_BT_WILINK
+        printk("acclaim: registering btwilink device.\n");
+        platform_device_register(&btwilink_device);
+#endif
+
+
 	omap4_ehci_ohci_init();
 
 	usb_musb_init(&musb_board_data);

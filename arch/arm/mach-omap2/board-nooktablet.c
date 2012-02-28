@@ -600,8 +600,8 @@ static struct platform_device acclaim_lcd_touch_regulator_device = {
 
 static struct platform_device *sdp4430_devices[] __initdata = {
 	&acclaim_keys_gpio,
-	&wl128x_device,
-	&btwilink_device,
+	//&wl128x_device,
+	//&btwilink_device,
 	&acclaim_lcd_touch_regulator_device,
 };
 

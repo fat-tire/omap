@@ -28,7 +28,7 @@
 #include "leds-omap-pwm.h"
 
 /* 38400000 / (1 << (COUNTER_DEVIDER + 1)) */
-#define COUNTER_DEVIDER		5 /* 600000 Hz counter in freq */
+#define COUNTER_DIVIDER		5 /* 600000 Hz counter in freq */
 #define COUNTER_LOAD_VAL	(0xFFFFFFFF - 4687 - 4) /* 128 Hz PWM out freq */
 #define COUNTER_TO_MATCH_GUARD	80
 
@@ -208,7 +208,7 @@ static void omap_pwm_led_power_on(struct omap_pwm_led *led)
 	pr_info("OMAP DM timer set source\n");
 	omap_dm_timer_set_source(led->intensity_timer, OMAP_TIMER_SRC_SYS_CLK);
 	pr_info("OMAP DM timer set prescaler\n");
-	omap_dm_timer_set_prescaler(led->intensity_timer, COUNTER_DEVIDER);
+	omap_dm_timer_set_prescaler(led->intensity_timer, COUNTER_DIVIDER);
 	/* Enable PWM timers */
 	if (led->blink_timer != NULL) {
 		pr_info("Enable PWM timer start\n");

@@ -695,7 +695,7 @@ static struct regulator_consumer_supply sdp4430_vaux_supply[] = {
 */
 static struct regulator_consumer_supply sdp4430_vmmc_supply[] = {
 	{
- 		.supply = "vemmc",
+ 		.supply = "vmmc",
 		.dev_name = "omap_hsmmc.0",
 	},
 };

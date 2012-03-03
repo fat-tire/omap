@@ -1,4 +1,3 @@
-
 /*
  * Board support file for OMAP4430 SDP.
  *
@@ -82,6 +81,7 @@
 /* for TI WiLink devices */
 #include <linux/skbuff.h>
 #include <linux/ti_wilink_st.h>
+#include "board-4430sdp-wifi.h"
 #include <plat/omap-serial.h>
 
 #define WILINK_UART_DEV_NAME "/dev/ttyO1"
@@ -107,6 +107,8 @@
 
 #define MAX17042_GPIO_FOR_IRQ  65
 #define KXTF9_GPIO_FOR_IRQ  66
+
+#define ACCLAIM_BT_GPIO 46 // total guess this needs to be set right.
 
 void acclaim_panel_init(void);
 
@@ -517,10 +519,10 @@ static int plat_uart_enable(void)
 
 /* wl128x BT, FM, GPS connectivity chip */
 static struct ti_st_plat_data wilink_pdata = {
-	.nshutdown_gpio = 55,
+	.nshutdown_gpio = ACCLAIM_BT_GPIO,
 	.dev_name = WILINK_UART_DEV_NAME,
 	.flow_cntrl = 1,
-	.baud_rate = 3000000,//3686400,
+	.baud_rate = 3686400,
 	.suspend = plat_wlink_kim_suspend,
 	.resume = plat_wlink_kim_resume,
 /*	.chip_asleep = plat_uart_disable,
@@ -529,11 +531,13 @@ static struct ti_st_plat_data wilink_pdata = {
 	.chip_disable = plat_uart_disable, */
 };
 
-static struct platform_device wl128x_device = {
-	.name		= "kim",
-	.id		= -1,
-	.dev.platform_data = &wilink_pdata,
+/* wl127x BT, FM, GPS connectivity chip */
+static struct platform_device wl127x_device = {
+       .name   = "kim",
+       .id     = -1,
+       .dev.platform_data = &wilink_pdata,
 };
+
 
 #ifdef CONFIG_TI_ST
 static bool is_bt_active(void)
@@ -541,7 +545,7 @@ static bool is_bt_active(void)
         struct platform_device  *pdev;
         struct kim_data_s       *kim_gdata;
 
-        pdev = &wl128x_device;
+        pdev = &wl127x_device;
         kim_gdata = dev_get_drvdata(&pdev->dev);
         if (st_ll_getstate(kim_gdata->core_data) != ST_LL_ASLEEP &&
                         st_ll_getstate(kim_gdata->core_data) != ST_LL_INVALID)
@@ -600,7 +604,7 @@ static struct platform_device acclaim_lcd_touch_regulator_device = {
 
 static struct platform_device *sdp4430_devices[] __initdata = {
 	&acclaim_keys_gpio,
-	&wl128x_device,
+	&wl127x_device,
 	&btwilink_device,
 	&acclaim_lcd_touch_regulator_device,
 };
@@ -681,7 +685,7 @@ static struct omap2_hsmmc_info mmc[] = {
 	{}	/* Terminator */
 };
 
-
+/*
 static struct regulator_consumer_supply sdp4430_vaux_supply[] = {
  	{
 		.supply = "vmmc",
@@ -694,6 +698,20 @@ static struct regulator_consumer_supply sdp4430_vmmc_supply[] = {
  		.supply = "vemmc",
 		.dev_name = "omap_hsmmc.1",
 	},
+};*/
+
+static struct regulator_consumer_supply sdp4430_vmmc_supply[] = {
+        REGULATOR_SUPPLY("vmmc", "mmci-omap-hs.0"),
+};
+
+static struct regulator_consumer_supply sdp4430_vemmc_supply[] = {
+        REGULATOR_SUPPLY("vmmc", "mmci-omap-hs.1"),
+};
+
+static struct regulator_consumer_supply sdp4430_vwlan_supply[] = {
+        {
+                .supply = "vwlan",
+        },
 };
 
 static struct regulator_consumer_supply omap4_sdp4430_vmmc5_supply = {
@@ -723,6 +741,7 @@ static struct platform_device omap_vwlan_device = {
 		.platform_data = &sdp4430_vwlan,
                }
 };
+
 
 static int omap4_twl6030_hsmmc_late_init(struct device *dev)
 {
@@ -786,14 +805,14 @@ static struct regulator_init_data sdp4430_vaux1 = {
 		.valid_ops_mask	 = REGULATOR_CHANGE_VOLTAGE
 			| REGULATOR_CHANGE_MODE
 			| REGULATOR_CHANGE_STATUS,
-// 		.state_mem = {
-// 			.enabled	= false,
-// 			.disabled	= true,
-// // 		},
+ 		.state_mem = {
+ 			.enabled	= false,
+ 			.disabled	= true,
+ 		},
 		.always_on	= true,
 	},
-	.num_consumer_supplies	= 1,
-	.consumer_supplies	= sdp4430_vaux_supply,
+//	.num_consumer_supplies	= 1,
+//	.consumer_supplies	= sdp4430_vaux_supply,
 };
 
 static struct regulator_init_data sdp4430_vaux2 = {
@@ -817,7 +836,7 @@ static struct regulator_init_data sdp4430_vaux2 = {
  	.constraints = {
  		.min_uV			= 1800000,
  		.max_uV			= 1800000,
-//  		.apply_uV		= true,
+  		.apply_uV		= true,
  		.valid_modes_mask	= REGULATOR_MODE_NORMAL
  			| REGULATOR_MODE_STANDBY,
  		.valid_ops_mask	 = REGULATOR_CHANGE_VOLTAGE
@@ -829,8 +848,8 @@ static struct regulator_init_data sdp4430_vaux2 = {
  		},
  		.always_on	= true,
  	},
-//  	.num_consumer_supplies = 1,
-//  	.consumer_supplies = sdp4430_vwlan_supply,
+  	.num_consumer_supplies = 1,
+  	.consumer_supplies = sdp4430_vwlan_supply,
  };
 
 static struct regulator_init_data sdp4430_vmmc = {
@@ -843,10 +862,10 @@ static struct regulator_init_data sdp4430_vmmc = {
 		.valid_ops_mask	 = REGULATOR_CHANGE_VOLTAGE
 			| REGULATOR_CHANGE_MODE
 			| REGULATOR_CHANGE_STATUS,
-//		.state_mem = {
-//			.enabled	= false,
-//			.disabled	= true,
-//		},
+		.state_mem = {
+			.enabled	= false,
+			.disabled	= true,
+		},
 		.always_on	= true,
 	},
 	.num_consumer_supplies  = 1,
@@ -891,7 +910,7 @@ static struct regulator_init_data sdp4430_vana = {
 	.constraints = {
 		.min_uV			= 2100000,
 		.max_uV			= 2100000,
-		//.apply_uV		= true,
+		.apply_uV		= true,
 		.valid_modes_mask	= REGULATOR_MODE_NORMAL
 			| REGULATOR_MODE_STANDBY,
 		.valid_ops_mask	 = REGULATOR_CHANGE_MODE
@@ -907,7 +926,7 @@ static struct regulator_init_data sdp4430_vcxio = {
 	.constraints = {
 		.min_uV			= 1800000,
 		.max_uV			= 1800000,
-		//.apply_uV		= true,
+		.apply_uV		= true,
 		.valid_modes_mask	= REGULATOR_MODE_NORMAL
 			| REGULATOR_MODE_STANDBY,
 		.valid_ops_mask	 = REGULATOR_CHANGE_MODE
@@ -991,24 +1010,21 @@ static struct twl4030_platform_data sdp4430_twldata = {
 	.irq_base	= TWL6030_IRQ_BASE,
 	.irq_end	= TWL6030_IRQ_END,
 
-	/* Regulators */
-	.vmmc		= &sdp4430_vmmc,
-	.vpp		= &sdp4430_vpp,
-	.vusim		= &sdp4430_vusim,
-	.vana		= &sdp4430_vana,
-	.vcxio		= &sdp4430_vcxio,
-//	.vdac		= &sdp4430_vdac,
-	.vusb		= &sdp4430_vusb,
-	.vaux1		= &sdp4430_vaux1,
-	.vaux2		= &sdp4430_vaux2,
-	.vaux3		= &sdp4430_vaux3,
-	.clk32kg	= &sdp4430_clk32kg,
-	.usb		= &omap4_usbphy_data,
+        /* Regulators */
+        .vmmc           = &sdp4430_vmmc,
+        .vpp            = &sdp4430_vpp,
+//      .vusim          = &sdp4430_vusim,  //not connected on the board
+        .vana           = &sdp4430_vana,
+        .vcxio          = &sdp4430_vcxio,
+//      .vdac           = &sdp4430_vdac,        //not used
+        .vusb           = &sdp4430_vusb,
+        .vaux1          = &sdp4430_vaux1,
+//      .vaux2          = &sdp4430_vaux2,       //proximity sensor not functional switching off vaux2.
+        .vaux3          = &sdp4430_vaux3,
+        .usb            = &omap4_usbphy_data,
+        .clk32kg        = &sdp4430_clk32kg,      // always ON for WiFi
+        .madc           = &sdp4430_gpadc_data,
 	.bci		= &sdp4430_bci_data,
-	/* children */
-//	.codec		= &twl6040_codec,
-	.madc           = &sdp4430_gpadc_data,
-
 };
 
 
@@ -1321,8 +1337,9 @@ static void omap4_sdp4430_wifi_mux_init(void)
 static struct wl12xx_platform_data omap4_sdp4430_wlan_data __initdata = {
 	.irq = OMAP_GPIO_IRQ(GPIO_WIFI_IRQ),
 	.board_ref_clock = WL12XX_REFCLOCK_26,
-	.board_tcxo_clock = WL12XX_TCXOCLOCK_26,
+	.board_tcxo_clock = 1,
 };
+
 
 static void omap4_sdp4430_wifi_init(void)
 {
@@ -1409,7 +1426,6 @@ static void __init omap_4430sdp_init(void)
 	
 	wake_lock_init(&st_wk_lock, WAKE_LOCK_SUSPEND, "st_wake_lock");
 	board_serial_init();
-	omap4_sdp4430_wifi_init();
 	omap4_twl6030_hsmmc_init(mmc);
 
 // 	/* blaze_modem_init shall be called before omap4_ehci_ohci_init */
@@ -1417,11 +1433,11 @@ static void __init omap_4430sdp_init(void)
 // 		blaze_modem_init(true);
 // 	else
 // 		blaze_modem_init(false);
-// #ifdef CONFIG_TIWLAN_SDIO
-// 	config_wlan_mux();
-// #else
+#ifdef CONFIG_TIWLAN_SDIO
+ 	config_wlan_mux();
+#else
 // 	omap4_4430sdp_wifi_init();
-// #endif
+#endif
 
 	kxtf9_dev_init();
 #ifdef CONFIG_BATTERY_MAX17042
@@ -1429,7 +1445,7 @@ static void __init omap_4430sdp_init(void)
 #endif
 #ifdef CONFIG_TI_ST
         printk("acclaim: registering wl127x device.\n");
-        platform_device_register(&wl128x_device);
+        platform_device_register(&wl127x_device);
 #endif
 
 #ifdef CONFIG_BT_WILINK

@@ -259,6 +259,10 @@ obj-$(CONFIG_MACH_OMAP4_NOOKTABLET)	+= board-nooktablet.o\
 					   omap4_apps_brd_id.o \
 					   omap_phy_internal.o
 
+ifeq ($(CONFIG_ARCH_OMAP4),y)
+obj-$(CONFIG_TIWLAN_SDIO)               += board-4430sdp-wifi.o
+endif
+
 obj-$(CONFIG_MACH_OMAP_BLAZE)		+= board-44xx-tablet.o \
 					   board-44xx-identity.o \
 					   board-44xx-tablet-touch.o \

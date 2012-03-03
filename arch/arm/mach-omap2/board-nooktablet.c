@@ -692,14 +692,34 @@ static struct regulator_consumer_supply sdp4430_vaux_supply[] = {
  		.dev_name = "omap_hsmmc.0",
  	},
 };
-
+*/
 static struct regulator_consumer_supply sdp4430_vmmc_supply[] = {
 	{
  		.supply = "vemmc",
-		.dev_name = "omap_hsmmc.1",
+		.dev_name = "omap_hsmmc.0",
 	},
-};*/
+};
 
+static struct regulator_consumer_supply sdp4430_vemmc_supply[] = {
+        {
+                .supply = "vemmc",
+                .dev_name = "omap_hsmmc.1",
+        },
+}; 
+
+static struct regulator_consumer_supply sdp4430_vwlan_supply[] = {
+        {
+                .supply = "vwlan",
+        },
+}; 
+
+static struct regulator_consumer_supply sdp4430_vcxio_supply[] = {
+        REGULATOR_SUPPLY("vdds_dsi", "omapdss_dss"),
+        REGULATOR_SUPPLY("vdds_dsi", "omapdss_dsi1"),
+};
+
+
+/*
 static struct regulator_consumer_supply sdp4430_vmmc_supply[] = {
         REGULATOR_SUPPLY("vmmc", "mmci-omap-hs.0"),
 };
@@ -707,12 +727,7 @@ static struct regulator_consumer_supply sdp4430_vmmc_supply[] = {
 static struct regulator_consumer_supply sdp4430_vemmc_supply[] = {
         REGULATOR_SUPPLY("vmmc", "mmci-omap-hs.1"),
 };
-
-static struct regulator_consumer_supply sdp4430_vwlan_supply[] = {
-        {
-                .supply = "vwlan",
-        },
-};
+*/
 
 static struct regulator_consumer_supply omap4_sdp4430_vmmc5_supply = {
 	.supply = "vmmc",
@@ -1303,6 +1318,9 @@ static struct omap_uart_port_info blaze_uart_info __initdata = {
 
 static inline void __init board_serial_init(void)
 {
+omap_serial_init();
+}
+/*
 	pr_info(KERN_INFO "Board serial init\n");
 	omap_serial_init_port_pads(0, blaze_uart1_pads,
 		ARRAY_SIZE(blaze_uart1_pads), &blaze_uart_info_uncon);
@@ -1313,7 +1331,7 @@ static inline void __init board_serial_init(void)
 	omap_serial_init_port_pads(3, blaze_uart4_pads,
 				   ARRAY_SIZE(blaze_uart4_pads), &blaze_uart_info_uncon);
 }
-
+*/
 static void omap4_sdp4430_wifi_mux_init(void)
 {
 	omap_mux_init_gpio(GPIO_WIFI_IRQ, OMAP_PIN_INPUT |

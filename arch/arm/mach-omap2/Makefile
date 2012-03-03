@@ -1,6 +1,7 @@
 #
 # Makefile for the linux kernel.
 #
+CFLAGS_mux.o				+= -DDEBUG
 
 # Common support
 obj-y := id.o io.o control.o mux.o devices.o serial.o gpmc.o timer-gp.o pm.o \

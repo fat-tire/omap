@@ -664,11 +664,10 @@ static struct omap2_hsmmc_info mmc[] = {
 	{
 		.name           = "wl1271",
 		.mmc		= 3,
-		.caps		= MMC_CAP_4_BIT_DATA,
-		// | MMC_CAP_POWER_OFF_CARD | MMC_PM_KEEP_POWER,
+		.caps		= MMC_CAP_4_BIT_DATA | MMC_CAP_POWER_OFF_CARD | MMC_PM_KEEP_POWER,
 		.gpio_cd	= -EINVAL,
 		.gpio_wp        = -EINVAL,
-		//.ocr_mask       = MMC_VDD_165_195,
+		.ocr_mask       = MMC_VDD_165_195,
 		.nonremovable	= true,
 	},
 	{}	/* Terminator */
@@ -1152,22 +1151,6 @@ module_param(enable_suspend_off, bool, S_IRUSR | S_IRGRP | S_IROTH);
 #ifdef CONFIG_OMAP_MUX
 static struct omap_board_mux board_mux[] __initdata = {
 	OMAP4_MUX(USBB1_ULPITLL_CLK, OMAP_MUX_MODE3 | OMAP_PIN_OUTPUT),
-
-	/* WLAN IRQ - GPIO  115 */
-	OMAP4_MUX(ABE_MCBSP1_DR, OMAP_MUX_MODE4 | OMAP_PIN_INPUT | OMAP_PIN_OFF_WAKEUPENABLE),
-	/* WLAN POWER ENABLE - GPIO 118 */
-	OMAP4_MUX(ABE_CLKS, OMAP_MUX_MODE4 | OMAP_PIN_OUTPUT),
-
-	/* WLAN SDIO: MMC3 CMD */
-	OMAP4_MUX(UART2_RTS, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP),
-	/* WLAN SDIO: MMC3 CLK */
-	OMAP4_MUX(UART2_CTS, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP),
-	/* WLAN SDIO: MMC3 DAT[0-3] */
-	OMAP4_MUX(UART2_RX, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP),
-	OMAP4_MUX(UART2_TX, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP),
-	OMAP4_MUX(ABE_MCBSP1_DX, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP),
-	OMAP4_MUX(ABE_MCBSP1_FSX, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP),
-	
 	{ .reg_offset = OMAP_MUX_TERMINATOR },
 };
 
@@ -1320,6 +1303,13 @@ static int wl12xx_set_power(struct device *dev, int slot, int on, int vdd)
 	return 0;
 }
 
+void config_wlan_mux(void)
+{
+	omap_mux_init_gpio(GPIO_WIFI_IRQ, 
+			   OMAP_PIN_INPUT | OMAP_PIN_OFF_WAKEUPENABLE);
+	omap_mux_init_gpio(GPIO_WIFI_PMENA, OMAP_PIN_OUTPUT);
+}
+
 static void omap4_sdp4430_wifi_init(void)
 {	
   struct device *dev;
@@ -1365,6 +1355,8 @@ static void omap4_sdp4430_wifi_init(void)
     goto out;
   }
   gpio_direction_input(GPIO_WIFI_IRQ);
+
+  config_wlan_mux ();
 
   if (wl12xx_set_platform_data(&omap4_sdp4430_wlan_data))
     pr_err("Error setting wl12xx data\n");
@@ -1450,7 +1442,7 @@ static void __init omap_4430sdp_init(void)
 #endif
 	
 	wake_lock_init(&st_wk_lock, WAKE_LOCK_SUSPEND, "st_wake_lock");
-	board_serial_init();
+	//board_serial_init();
 	omap4_twl6030_hsmmc_init(mmc);
 	omap4_sdp4430_wifi_init();
 

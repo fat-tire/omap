@@ -688,34 +688,6 @@ static struct regulator_consumer_supply sdp4430_vmmc_supply[] = {
 	},
 };
 
-static struct regulator_consumer_supply omap4_sdp4430_vmmc3_supply = {
-	.supply = "vmmc",
-	.dev_name = "omap_hsmmc.2",
-};
-static struct regulator_init_data sdp4430_vmmc3 = {
-	.constraints = {
-		.valid_ops_mask = REGULATOR_CHANGE_STATUS,
-	},
-	.num_consumer_supplies = 1,
-	.consumer_supplies = &omap4_sdp4430_vmmc3_supply,
-};
-static struct fixed_voltage_config sdp4430_vwlan = {
-	.supply_name = "vwl1271",
-	.microvolts = 1800000, /* 1.8V */
-	.gpio = GPIO_WIFI_PMENA,
-	.startup_delay = 70000, /* 70msec */
-	.enable_high = 1,
-	.enabled_at_boot = 0,
-	.init_data = &sdp4430_vmmc3,
-};
-static struct platform_device omap_vwlan_device = {
-	.name		= "reg-fixed-voltage",
-	.id		= 1,
-	.dev = {
-		.platform_data = &sdp4430_vwlan,
-               }
-};
-
 static int omap4_twl6030_hsmmc_late_init(struct device *dev)
 {
 	int ret = 0;
@@ -1279,14 +1251,13 @@ static inline void __init board_serial_init(void)
 	omap_serial_init_port_pads(2, blaze_uart3_pads,
 		ARRAY_SIZE(blaze_uart3_pads), &blaze_uart_info);
 	omap_serial_init_port_pads(3, blaze_uart4_pads,
-				   ARRAY_SIZE(blaze_uart4_pads), &blaze_uart_info_uncon);
+		ARRAY_SIZE(blaze_uart4_pads), &blaze_uart_info_uncon);
 }
 
 
 static struct wl12xx_platform_data omap4_sdp4430_wlan_data __initdata = {
 	.irq = OMAP_GPIO_IRQ(GPIO_WIFI_IRQ),
-	.board_ref_clock = WL12XX_REFCLOCK_26,
-	.board_tcxo_clock = WL12XX_TCXOCLOCK_26,
+	.board_ref_clock = WL12XX_REFCLOCK_38
 };
 
 static int wl12xx_set_power(struct device *dev, int slot, int on, int vdd)
@@ -1312,55 +1283,54 @@ void config_wlan_mux(void)
 
 static void omap4_sdp4430_wifi_init(void)
 {	
-  struct device *dev;
-  struct omap_mmc_platform_data *pdata;
-  int ret;
+	struct device *dev;
+	struct omap_mmc_platform_data *pdata;
+	int ret;
 
-  dev = mmc[2].dev;
-  if (!dev) {
-    pr_err("wl12xx mmc device initialization failed\n");
-    goto out;
-  }
+	printk(KERN_WARNING"%s: start\n", __func__);
 
-  pdata = dev->platform_data;
-  if (!pdata) {
-    pr_err("Platfrom data of wl12xx device not set\n");
+	ret = gpio_request(GPIO_WIFI_PMENA, "wifi_pmena");
+	if (ret < 0) {
+		pr_err("%s: can't reserve GPIO: %d\n", __func__,
+		       GPIO_WIFI_PMENA);
 		goto out;
-  }
+	}
+	gpio_direction_output(GPIO_WIFI_PMENA, 0);
   
-  pdata->slots[0].set_power = wl12xx_set_power;
-
-  printk(KERN_WARNING"%s: start\n", __func__);
-
-  ret = gpio_request(GPIO_WIFI_PMENA, "wifi_pmena");
-  if (ret < 0) {
-    pr_err("%s: can't reserve GPIO: %d\n", __func__,
-	   GPIO_WIFI_PMENA);
-    goto out;
-  }
-  gpio_direction_output(GPIO_WIFI_PMENA, 0);
+	ret = gpio_request(GPIO_WIFI_PWEN, "wifi_pwen");
+	if (ret < 0) {
+		pr_err("%s: can't reserve GPIO: %d\n", __func__,
+		       GPIO_WIFI_PWEN);
+		goto out;
+	}
+	gpio_direction_output(GPIO_WIFI_PWEN, 0);
   
-  ret = gpio_request(GPIO_WIFI_PWEN, "wifi_pwen");
-  if (ret < 0) {
-    pr_err("%s: can't reserve GPIO: %d\n", __func__,
-	   GPIO_WIFI_PWEN);
-    goto out;
-  }
-  gpio_direction_output(GPIO_WIFI_PWEN, 0);
-  
-  ret = gpio_request(GPIO_WIFI_IRQ, "wifi_irq");
-  if (ret < 0) {
-    printk(KERN_ERR "%s: can't reserve GPIO: %d\n", __func__,
-	   GPIO_WIFI_IRQ);
-    goto out;
-  }
-  gpio_direction_input(GPIO_WIFI_IRQ);
+	ret = gpio_request(GPIO_WIFI_IRQ, "wifi_irq");
+	if (ret < 0) {
+		printk(KERN_ERR "%s: can't reserve GPIO: %d\n", __func__,
+		GPIO_WIFI_IRQ);
+		goto out;
+	}
+	gpio_direction_input(GPIO_WIFI_IRQ);
 
-  config_wlan_mux ();
+	dev = mmc[2].dev;
+	if (!dev) {
+		pr_err("wl12xx mmc device initialization failed\n");
+		goto out;
+	}
 
-  if (wl12xx_set_platform_data(&omap4_sdp4430_wlan_data))
-    pr_err("Error setting wl12xx data\n");
-  platform_device_register(&omap_vwlan_device);
+	pdata = dev->platform_data;
+	if (!pdata) {
+		pr_err("Platfrom data of wl12xx device not set\n");
+		goto out;
+	}
+
+	pdata->slots[0].set_power = wl12xx_set_power;
+
+	config_wlan_mux ();
+
+	if (wl12xx_set_platform_data(&omap4_sdp4430_wlan_data))
+		pr_err("Error setting wl12xx data\n");
 
  out:
 	return;
